@@ -1,0 +1,9 @@
+package implementation;
+
+public class MyKeyStorage {
+
+	public MyKeyStorage() {
+		// TODO Auto-generated constructor stub
+	}
+
+}
