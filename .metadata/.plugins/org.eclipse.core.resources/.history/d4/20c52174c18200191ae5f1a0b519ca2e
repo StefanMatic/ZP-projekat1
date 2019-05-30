@@ -103,6 +103,7 @@ public class MyKeyStorage {
 		try {
 			return keyStorage.getKey(alias, charArray);
 		} catch (Exception e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
