@@ -33,16 +33,14 @@ import gui.Constants;
 import x509.v3.CodeV3;
 
 public class MyCode extends CodeV3 {
-	private MyKeyStorage myKeyStore;
+	private MyKeyStorage myKeyStore = new MyKeyStorage();
 	private int skipCerts = Integer.MAX_VALUE;
 
 
 	public MyCode(boolean[] algorithm_conf, boolean[] extensions_conf, boolean extensions_rules) throws GuiException {
 		super(algorithm_conf, extensions_conf, extensions_rules);
-		
-		myKeyStore = new MyKeyStorage();
-		
-		}
+		// TODO Auto-generated constructor stub
+	}
 
 	@Override
 	public boolean canSign(String arg0) {
@@ -118,10 +116,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public Enumeration<String> loadLocalKeystore() {
-		if (myKeyStore != null) {
-			return myKeyStore.getAliases();
-		}
-
+		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -189,7 +184,6 @@ public class MyCode extends CodeV3 {
 			
 			System.out.println(certificate);
 			myKeyStore.setKeyEntry(arg0, myPrivateKey, myKeyStore.getPassword().toCharArray() ,chain);
-			return true;
 			
 		} catch (InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block

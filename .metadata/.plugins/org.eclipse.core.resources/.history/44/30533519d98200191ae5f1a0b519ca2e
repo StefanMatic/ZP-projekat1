@@ -39,10 +39,11 @@ public class MyCode extends CodeV3 {
 
 	public MyCode(boolean[] algorithm_conf, boolean[] extensions_conf, boolean extensions_rules) throws GuiException {
 		super(algorithm_conf, extensions_conf, extensions_rules);
-		
+		super(algorithm_conf, extensions_conf);
+		selected = null;
 		myKeyStore = new MyKeyStorage();
-		
-		}
+		Security.addProvider(new BouncyCastleProvider());
+		provider = Security.getProvider("BC");	}
 
 	@Override
 	public boolean canSign(String arg0) {
@@ -118,10 +119,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public Enumeration<String> loadLocalKeystore() {
-		if (myKeyStore != null) {
-			return myKeyStore.getAliases();
-		}
-
+		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -189,7 +187,6 @@ public class MyCode extends CodeV3 {
 			
 			System.out.println(certificate);
 			myKeyStore.setKeyEntry(arg0, myPrivateKey, myKeyStore.getPassword().toCharArray() ,chain);
-			return true;
 			
 		} catch (InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block

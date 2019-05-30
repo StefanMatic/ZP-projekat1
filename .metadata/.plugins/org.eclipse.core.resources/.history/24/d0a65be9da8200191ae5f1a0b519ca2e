@@ -190,7 +190,6 @@ public class MyCode extends CodeV3 {
 			System.out.println(certificate);
 			myKeyStore.setKeyEntry(arg0, myPrivateKey, myKeyStore.getPassword().toCharArray() ,chain);
 			return true;
-			
 		} catch (InvalidAlgorithmParameterException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

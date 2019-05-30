@@ -4,7 +4,6 @@ import java.security.cert.Certificate;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.UUID;
@@ -106,16 +105,6 @@ public class MyKeyStorage {
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
-		}
-	}
-	
-	public void setKeyEntry(String arg0, PrivateKey private1, char[] charArray, Certificate[] chain) {
-		try {
-			keyStorage.setKeyEntry(arg0, private1, charArray, chain);
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
 		}
 	}
 	
