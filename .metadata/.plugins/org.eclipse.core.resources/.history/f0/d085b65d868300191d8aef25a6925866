@@ -14,8 +14,6 @@ import java.util.Date;
 import java.util.Enumeration;
 
 import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
-import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -140,40 +138,6 @@ public class MyCode extends CodeV3 {
 				super.access.setIssuerSignatureAlgorithm(myCertificate.getSigAlgName());
 			}
 			
-			super.access.setVersion(V3);
-			super.access.setPublicKeyAlgorithm("EC");
-			super.access.setNotAfter(myCertificate.getNotAfter());
-			super.access.setNotBefore(myCertificate.getNotBefore());
-			super.access.setSerialNumber(myCertificate.getSerialNumber().toString());
-			
-			
-			String selectedSerialNumber = myCertificate.getSerialNumber().toString();
-			for (RDN rdn:subject.getRDNs()) {
-				AttributeTypeAndValue first = rdn.getFirst();
-				
-				if (first.getType().equals(BCStyle.CN)) {
-					super.access.setSubjectCommonName(first.getValue().toString());
-				}
-				else if (first.getType().equals(BCStyle.C)) {
-					super.access.setSubjectCountry(first.getValue().toString());
-				}
-				else if (first.getType().equals(BCStyle.ST)) {
-					super.access.setSubjectState(first.getValue().toString());
-				}
-				else if (first.getType().equals(BCStyle.O)) {
-					super.access.setSubjectOrganization(first.getValue().toString());
-				}
-				else if (first.getType().equals(BCStyle.L)) {
-					super.access.setSubjectLocality(first.getValue().toString());
-				}
-				else if (first.getType().equals(BCStyle.OU)) {
-					super.access.setSubjectOrganizationUnit(first.getValue().toString());
-				}
-				else if (first.getValue().equals(BCStyle.SERIALNUMBER)) {
-					selectedSerialNumber = first.getValue().toString();
-				}
-				
-			}
 			
 			return 0;
 		} catch (Exception e) {

@@ -147,7 +147,8 @@ public class MyCode extends CodeV3 {
 			super.access.setSerialNumber(myCertificate.getSerialNumber().toString());
 			
 			
-			String selectedSerialNumber = myCertificate.getSerialNumber().toString();
+			String serial = myCertificate.getSerialNumber().toString();
+			System.out.println(serial);
 			for (RDN rdn:subject.getRDNs()) {
 				AttributeTypeAndValue first = rdn.getFirst();
 				
@@ -170,8 +171,10 @@ public class MyCode extends CodeV3 {
 					super.access.setSubjectOrganizationUnit(first.getValue().toString());
 				}
 				else if (first.getValue().equals(BCStyle.SERIALNUMBER)) {
-					selectedSerialNumber = first.getValue().toString();
+					serial = first.getValue().toString();
+					System.out.println(serial);
 				}
+				
 				
 			}
 			

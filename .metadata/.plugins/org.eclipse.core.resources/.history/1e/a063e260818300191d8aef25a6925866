@@ -19,7 +19,8 @@ public class MyKeyStorage {
 			keyStorage.load(null, null);
 			String uuid = UUID.randomUUID().toString();
 			setPassword(uuid);
-		} catch (Exception e) {
+		}
+		catch(Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -31,7 +32,7 @@ public class MyKeyStorage {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
+	
 	X509Certificate getCertificate(String alias) {
 		try {
 			return (X509Certificate) keyStorage.getCertificate(alias);
@@ -41,15 +42,6 @@ public class MyKeyStorage {
 		}
 	}
 	
-	public void setSertificate(String alias, X509Certificate certificate) {
-		try {
-			keyStorage.setCertificateEntry(alias, certificate);
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
 	public Certificate[] getCertificateChain(String arg0) {
 		try {
 			return keyStorage.getCertificateChain(arg0);
@@ -58,7 +50,18 @@ public class MyKeyStorage {
 			return null;
 		}
 	}
-
+	
+	public boolean containsAliases(String alias) {
+		try {
+			return keyStorage.containsAlias(alias);
+		}
+		catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+			}	
+		}
+	
 	Enumeration<String> getAliases() {
 		try {
 			return keyStorage.aliases();
@@ -68,17 +71,7 @@ public class MyKeyStorage {
 			return null;
 		}
 	}
-
-	public boolean containsAliases(String alias) {
-		try {
-			return keyStorage.containsAlias(alias);
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return false;
-		}
-	}
-
+	
 	public void removeKeyPair(String arg0) {
 		try {
 			keyStorage.deleteEntry(arg0);
@@ -87,7 +80,7 @@ public class MyKeyStorage {
 			e.printStackTrace();
 		}
 	}
-
+	
 	void resetKeyStore() {
 		try {
 			keyStorage.load(null, null);
@@ -106,7 +99,7 @@ public class MyKeyStorage {
 			return false;
 		}
 	}
-
+	
 	public Key getKey(String alias, char[] charArray) {
 		try {
 			return keyStorage.getKey(alias, charArray);
@@ -115,7 +108,7 @@ public class MyKeyStorage {
 			return null;
 		}
 	}
-
+	
 	public void setKeyEntry(String arg0, PrivateKey private1, char[] charArray, Certificate[] chain) {
 		try {
 			keyStorage.setKeyEntry(arg0, private1, charArray, chain);
@@ -125,6 +118,15 @@ public class MyKeyStorage {
 			return;
 		}
 	}
+	
+	public void setSertificate(String alias, X509Certificate certificate) {
+		try {
+			keyStorage.setCertificateEntry(alias, certificate);
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+	}
 
 }
