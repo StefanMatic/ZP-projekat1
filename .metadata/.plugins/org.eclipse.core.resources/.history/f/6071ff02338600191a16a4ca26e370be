@@ -8,7 +8,6 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.KeyStore.PrivateKeyEntry;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -73,9 +72,7 @@ public class MyCode extends CodeV3 {
 	public MyCode(boolean[] algorithm_conf, boolean[] extensions_conf, boolean extensions_rules) throws GuiException {
 		super(algorithm_conf, extensions_conf, extensions_rules);
 
-		if (myKeyStore == null)
-			myKeyStore = new MyKeyStorage();
-
+		myKeyStore = new MyKeyStorage();
 		selectedCertificate = null;
 	}
 
@@ -202,7 +199,7 @@ public class MyCode extends CodeV3 {
 					super.access.setSubjectKeyID(String.valueOf(sCerts));
 					super.access.setEnabledSubjectKeyID(true);
 					super.access.setCritical(Constants.SKID,
-							holder.getExtension(Extension.subjectKeyIdentifier).isCritical());
+							 holder.getExtension(Extension.subjectKeyIdentifier).isCritical());
 				}
 
 			}
@@ -271,11 +268,11 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public Enumeration<String> loadLocalKeystore() {
-		if (myKeyStore == null)
-			myKeyStore = new MyKeyStorage();
+		if (myKeyStore != null) {
+			return myKeyStore.getAliases();
+		}
 
-		return myKeyStore.getAliases();
-
+		return null;
 	}
 
 	@Override
@@ -354,8 +351,9 @@ public class MyCode extends CodeV3 {
 			if (extension1Enabled) {
 				SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(myPublicKey.getEncoded());
 				SubjectKeyIdentifier subjectKeyId = new SubjectKeyIdentifier(keyInfo.getEncoded());
-
-				generator.addExtension(Extension.subjectKeyIdentifier, extension1Critical, subjectKeyId);
+				
+				generator.addExtension(Extension.subjectKeyIdentifier, extension1Critical,
+						subjectKeyId);
 			}
 			// ***********************************
 
@@ -461,9 +459,7 @@ public class MyCode extends CodeV3 {
 			chain[0] = certificate;
 
 			System.out.println(certificate);
-
-			PrivateKeyEntry privateKeyEntry = new PrivateKeyEntry(myPrivateKey, chain);
-			myKeyStore.setEntry(arg0, privateKeyEntry, myKeyStore.getPasswordProtection());
+			myKeyStore.setKeyEntry(arg0, myPrivateKey, myKeyStore.getPassword().toCharArray(), chain);
 			return true;
 
 		} catch (InvalidAlgorithmParameterException e) {

@@ -87,7 +87,7 @@ public class MyKeyStorage {
 		FileInputStream fis = null;
 		try {
 			System.out.println(file.length());
-			if (file.exists() && file.length() != 0) {
+			if (file.exists() ) {
 				fis = new FileInputStream(file);
 				keyStorage = KeyStore.getInstance("PKCS12");
 				keyStorage.load(fis, password.toCharArray());

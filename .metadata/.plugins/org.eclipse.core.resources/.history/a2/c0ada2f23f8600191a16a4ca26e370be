@@ -84,11 +84,9 @@ public class MyKeyStorage {
 	}
 
 	Enumeration<String> getAliases() {
-		FileInputStream fis = null;
 		try {
-			System.out.println(file.length());
-			if (file.exists() && file.length() != 0) {
-				fis = new FileInputStream(file);
+			if (file.exists()) {
+				FileInputStream fis = new FileInputStream(file);
 				keyStorage = KeyStore.getInstance("PKCS12");
 				keyStorage.load(fis, password.toCharArray());
 				fis.close();
@@ -109,15 +107,6 @@ public class MyKeyStorage {
 		} catch (CertificateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally {
-			if (fis != null) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 		}
 
 		return null;

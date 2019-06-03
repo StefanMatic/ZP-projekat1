@@ -12,39 +12,34 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.KeyStore.Entry;
-import java.security.KeyStore.PasswordProtection;
-import java.security.KeyStore.ProtectionParameter;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 import java.util.UUID;
 
 public class MyKeyStorage {
 	private KeyStore keyStorage;
-	private String password = "ECalgoritam";
-	private PasswordProtection passwordProtection;
+	private String password;
 	private File file;
 	private String myFilePath = "MyKeyStore.p12";
 
 	public MyKeyStorage() {
 		try {
-			passwordProtection = new PasswordProtection(password.toCharArray());
+			String uuid = UUID.randomUUID().toString();
+			setPassword(uuid);
 
 			file = new File(myFilePath);
-			if (!file.exists()) {
-				file.createNewFile();
+			if (file.exists()) {
+				FileInputStream fis = new FileInputStream(file);
+				keyStorage = KeyStore.getInstance("PKCS12");
+				keyStorage.load(fis, password.toCharArray());
+				fis.close();
+			} else {
+				keyStorage = KeyStore.getInstance("PKCS12");
+				keyStorage.load(null, null);
 			}
-			
-			keyStorage = KeyStore.getInstance("PKCS12");
-			keyStorage.load(null, null);
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	public PasswordProtection getPasswordProtection() {
-		return passwordProtection;
 	}
 
 	public String getPassword() {
@@ -84,18 +79,17 @@ public class MyKeyStorage {
 	}
 
 	Enumeration<String> getAliases() {
-		FileInputStream fis = null;
 		try {
-			System.out.println(file.length());
-			if (file.exists() && file.length() != 0) {
-				fis = new FileInputStream(file);
+			file = new File(myFilePath);
+			if (file.exists()) {
+				FileInputStream fis = new FileInputStream(file);
 				keyStorage = KeyStore.getInstance("PKCS12");
 				keyStorage.load(fis, password.toCharArray());
 				fis.close();
 			}
-
+			
 			return keyStorage.aliases();
-
+			
 		} catch (KeyStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -109,17 +103,8 @@ public class MyKeyStorage {
 		} catch (CertificateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}finally {
-			if (fis != null) {
-				try {
-					fis.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 		}
-
+		
 		return null;
 	}
 
@@ -172,24 +157,14 @@ public class MyKeyStorage {
 		}
 	}
 
-	public void setKeyEntry(String arg0, PrivateKey privateKey, char[] myPass, Certificate[] chain) {
+	public void setKeyEntry(String arg0, PrivateKey private1, char[] charArray, Certificate[] chain) {
 		try {
-			keyStorage.setKeyEntry(arg0, privateKey, myPass, chain);
+			keyStorage.setKeyEntry(arg0, private1, charArray, chain);
 			saveToFile();
 		} catch (KeyStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
-		}
-	}
-
-	public void setEntry(String alias, Entry privateEntry, ProtectionParameter protectionParameter) {
-		try {
-			keyStorage.setEntry(alias, privateEntry, protectionParameter);
-			saveToFile();
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 
@@ -216,6 +191,7 @@ public class MyKeyStorage {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 	}
 
 }
