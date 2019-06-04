@@ -99,14 +99,8 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public boolean exportKeypair(String arg0, String arg1, String arg2) {
-		//arg0 - keypairName; arg1 - file; arg2 - password
-		
-		if(!arg1.endsWith(".p12")){
-			GuiV3.reportError("Pogresan format. Unesite .p12 na kraju imena fajla.");
-			return false;
-		}
-		
-		return myKeyStore.exportKeypair(arg0, arg1, arg2);
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
@@ -147,8 +141,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public boolean importKeypair(String arg0, String arg1, String arg2) {
-		//arg0 - keypairName; arg1 - file; arg2 - password
-
+		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -282,6 +275,7 @@ public class MyCode extends CodeV3 {
 			myKeyStore = new MyKeyStorage();
 
 		return myKeyStore.getAliases();
+
 	}
 
 	@Override
@@ -351,6 +345,7 @@ public class MyCode extends CodeV3 {
 			X509v3CertificateBuilder generator = new JcaX509v3CertificateBuilder(holder, serialNumber, notBefore,
 					notAfter, holder, myPublicKey);
 
+			// Are extensions critical
 
 			// ******Subject key identifier*******
 			boolean extension1Critical = super.access.isCritical(Constants.SKID);
@@ -449,6 +444,7 @@ public class MyCode extends CodeV3 {
 
 				String extension3SkipCerts = super.access.getSkipCerts();
 				BigInteger skipCertsBigInt = new java.math.BigInteger(extension3SkipCerts);
+				// skipCerts = Integer.parseInt(extension3SkipCerts);
 				ASN1Integer asnInt = new ASN1Integer(skipCertsBigInt);
 
 				generator.addExtension(Extension.inhibitAnyPolicy, extension3Critical, asnInt);

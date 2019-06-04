@@ -147,8 +147,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public boolean importKeypair(String arg0, String arg1, String arg2) {
-		//arg0 - keypairName; arg1 - file; arg2 - password
-
+		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -282,6 +281,7 @@ public class MyCode extends CodeV3 {
 			myKeyStore = new MyKeyStorage();
 
 		return myKeyStore.getAliases();
+
 	}
 
 	@Override

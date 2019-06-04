@@ -33,7 +33,6 @@
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1Primitive"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1InputStream"/>
 <fullyQualifiedTypeName name="java.io.ByteArrayInputStream"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.SubjectKeyIdentifier"/>
 <fullyQualifiedTypeName name="org.bouncycastle.util.encoders.Hex"/>
 <fullyQualifiedTypeName name="gui.InhibitAnyPolicyPanel"/>
 <fullyQualifiedTypeName name="java.math.BigInteger"/>
@@ -48,4 +47,12 @@
 <fullyQualifiedTypeName name="gui.Constants"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1OctetString"/>
 <fullyQualifiedTypeName name="java.nio.ByteBuffer"/>
+<fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.SubjectKeyIdentifier"/>
+<fullyQualifiedTypeName name="java.io.File"/>
+<fullyQualifiedTypeName name="java.io.FileOutputStream"/>
+<fullyQualifiedTypeName name="java.security.KeyStore.PasswordProtection"/>
+<fullyQualifiedTypeName name="java.security.KeyStore.Entry"/>
+<fullyQualifiedTypeName name="java.security.KeyStore.ProtectionParameter"/>
+<fullyQualifiedTypeName name="java.security.KeyStore.PrivateKeyEntry"/>
+<fullyQualifiedTypeName name="java.io.FileInputStream"/>
 </qualifiedTypeNameHistroy>
