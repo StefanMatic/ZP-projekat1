@@ -204,16 +204,13 @@ public class MyKeyStorage {
 	public boolean importKeypair(String keyPairName, String newFile, String newPassword) {
 		FileInputStream fis = null;
 		try {
-			fis = new FileInputStream(newFile);
+			fis = new FileInputStream(file);
 			KeyStore newKeyStore = KeyStore.getInstance(TYPE);
 			newKeyStore.load(fis,newPassword.toCharArray());
 			Certificate[] newChain = newKeyStore.getCertificateChain(keyPairName);
 			
-			PrivateKey newPrivateKey = (PrivateKey) newKeyStore.getKey(keyPairName, newPassword.toCharArray());
-			if (newPrivateKey == null)
-				return false;
-			
-			keyStorage.setKeyEntry(keyPairName, newPrivateKey, password.toCharArray(), newChain);
+			keyStorage.setKeyEntry(keyPairName, (PrivateKey) newKeyStore.getKey(keyPairName, newPassword.toCharArray()),
+					password.toCharArray(), newChain);
 			
 			fis.close();
 			return true;
@@ -244,7 +241,7 @@ public class MyKeyStorage {
 			newKeyStore.load(null, newPassword.toCharArray());
 			PrivateKey privateKey = (PrivateKey) keyStorage.getKey(keyPairName, password.toCharArray());
 			Certificate cert = keyStorage.getCertificate(keyPairName);
-			newKeyStore.setKeyEntry(keyPairName, privateKey, newPassword.toCharArray(), new Certificate[] { cert });
+			newKeyStore.setKeyEntry(keyPairName, privateKey, password.toCharArray(), new Certificate[] { cert });
 			System.out.println(file);
 			
 			newKeyStore.store(fos, newPassword.toCharArray());

@@ -244,7 +244,7 @@ public class MyKeyStorage {
 			newKeyStore.load(null, newPassword.toCharArray());
 			PrivateKey privateKey = (PrivateKey) keyStorage.getKey(keyPairName, password.toCharArray());
 			Certificate cert = keyStorage.getCertificate(keyPairName);
-			newKeyStore.setKeyEntry(keyPairName, privateKey, newPassword.toCharArray(), new Certificate[] { cert });
+			newKeyStore.setKeyEntry(keyPairName, privateKey, password.toCharArray(), new Certificate[] { cert });
 			System.out.println(file);
 			
 			newKeyStore.store(fos, newPassword.toCharArray());
