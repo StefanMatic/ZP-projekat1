@@ -101,6 +101,7 @@ public class MyKeyStorage {
 				keyStorage.load(fis, password.toCharArray());
 				fis.close();
 			}
+
 			return keyStorage.aliases();
 
 		} catch (KeyStoreException e) {
@@ -215,8 +216,6 @@ public class MyKeyStorage {
 			keyStorage.setKeyEntry(keyPairName, newPrivateKey, password.toCharArray(), newChain);
 			
 			fis.close();
-			
-			saveToFile();
 			return true;
 		} catch (Exception e) {
 			// TODO: handle exception

@@ -1,10 +1,7 @@
 package implementation;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.InvalidAlgorithmParameterException;
@@ -49,7 +46,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -92,58 +88,24 @@ public class MyCode extends CodeV3 {
 	@Override
 	public boolean exportCSR(String arg0, String arg1, String arg2) {
 		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	@Override
 	public boolean exportCertificate(String arg0, String arg1, int arg2, int arg3) {
-		// arg0 - file; arg1 - keypairName; arg2 - encoding; arg3 - format
-		try {
-			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg1);
-			X509Certificate[] certChain = (X509Certificate[]) myKeyStore.getCertificateChain(arg0);
-			Writer writer = new FileWriter(arg0);
-
-			if (arg2 == Constants.PEM) {
-				JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
-				if (arg3 == 0) {
-					pemWriter.writeObject(cert);
-				} else {
-					for (X509Certificate c : certChain) {
-						pemWriter.writeObject(c);
-					}
-				}
-				pemWriter.flush();
-				pemWriter.close();
-			} else if (arg2 == Constants.DER) {
-				FileOutputStream fos = new FileOutputStream(arg0);
-				if (arg3 == 0) {
-					fos.write(cert.getEncoded());
-				} else {
-					for (X509Certificate c : certChain) {
-						fos.write(c.getEncoded());
-					}
-				}
-				fos.close();
-			}
-			writer.close();
-
-			return true;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
+		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean exportKeypair(String arg0, String arg1, String arg2) {
-		// arg0 - keypairName; arg1 - file; arg2 - password
-
-		if (!arg1.endsWith(".p12")) {
+		//arg0 - keypairName; arg1 - file; arg2 - password
+		
+		if(!arg1.endsWith(".p12")){
 			GuiV3.reportError("Pogresan format. Unesite .p12 na kraju imena fajla.");
 			return false;
 		}
-
+		
 		return myKeyStore.exportKeypair(arg0, arg1, arg2);
 	}
 
@@ -185,7 +147,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public boolean importKeypair(String arg0, String arg1, String arg2) {
-		// arg0 - keypairName; arg1 - file; arg2 - password
+		//arg0 - keypairName; arg1 - file; arg2 - password
 		return myKeyStore.importKeypair(arg0, arg1, arg2);
 	}
 
@@ -387,6 +349,7 @@ public class MyCode extends CodeV3 {
 
 			X509v3CertificateBuilder generator = new JcaX509v3CertificateBuilder(holder, serialNumber, notBefore,
 					notAfter, holder, myPublicKey);
+
 
 			// ******Subject key identifier*******
 			boolean extension1Critical = super.access.isCritical(Constants.SKID);

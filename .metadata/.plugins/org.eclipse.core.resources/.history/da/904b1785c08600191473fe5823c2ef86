@@ -92,7 +92,7 @@ public class MyCode extends CodeV3 {
 	@Override
 	public boolean exportCSR(String arg0, String arg1, String arg2) {
 		// TODO Auto-generated method stub
-		return true;
+		return false;
 	}
 
 	@Override
@@ -112,6 +112,7 @@ public class MyCode extends CodeV3 {
 						pemWriter.writeObject(c);
 					}
 				}
+				pemWriter.writeObject((arg3 == 0) ? cert : certChain);
 				pemWriter.flush();
 				pemWriter.close();
 			} else if (arg2 == Constants.DER) {
