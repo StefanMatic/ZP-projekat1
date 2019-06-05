@@ -26,7 +26,7 @@ public class MyKeyStorage {
 	private PasswordProtection passwordProtection;
 	private File file;
 	private String myFilePath = "MyKeyStore.p12";
-
+	
 	public static final String TYPE = "pkcs12";
 
 	public MyKeyStorage() {
@@ -37,7 +37,7 @@ public class MyKeyStorage {
 			if (!file.exists()) {
 				file.createNewFile();
 			}
-
+			
 			keyStorage = KeyStore.getInstance(TYPE);
 			keyStorage.load(null, null);
 
@@ -54,11 +54,11 @@ public class MyKeyStorage {
 		this.password = password;
 		makeNewPasswordProtection();
 	}
-
+	
 	public PasswordProtection getPasswordProtection() {
 		return passwordProtection;
 	}
-
+	
 	public void makeNewPasswordProtection() {
 		passwordProtection = new PasswordProtection(password.toCharArray());
 	}
@@ -116,7 +116,7 @@ public class MyKeyStorage {
 		} catch (CertificateException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
+		}finally {
 			if (fis != null) {
 				try {
 					fis.close();
@@ -138,16 +138,6 @@ public class MyKeyStorage {
 			e.printStackTrace();
 			return false;
 		}
-	}
-	
-	public boolean isCertificateEntry(String alias) {
-		try {
-			return keyStorage.isCertificateEntry(alias);
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return false;
 	}
 
 	public void removeKeyPair(String arg0) {
@@ -215,23 +205,23 @@ public class MyKeyStorage {
 		try {
 			fis = new FileInputStream(newFile);
 			KeyStore newKeyStore = KeyStore.getInstance(TYPE);
-			newKeyStore.load(fis, newPassword.toCharArray());
+			newKeyStore.load(fis,newPassword.toCharArray());
 			Certificate[] newChain = newKeyStore.getCertificateChain(keyPairName);
-
+			
 			PrivateKey newPrivateKey = (PrivateKey) newKeyStore.getKey(keyPairName, newPassword.toCharArray());
 			if (newPrivateKey == null)
 				return false;
-
+			
 			keyStorage.setKeyEntry(keyPairName, newPrivateKey, password.toCharArray(), newChain);
-
+			
 			fis.close();
-
+			
 			saveToFile();
 			return true;
 		} catch (Exception e) {
 			// TODO: handle exception
 			e.printStackTrace();
-		} finally {
+		}finally {
 			if (fis != null) {
 				try {
 					fis.close();
@@ -242,24 +232,24 @@ public class MyKeyStorage {
 			}
 		}
 		return false;
-	}
-
+	} 
+	
 	public boolean exportKeypair(String keyPairName, String file, String newPassword) {
 		FileOutputStream fos = null;
-
+		
 		try {
 			fos = new FileOutputStream(file);
-
+			
 			KeyStore newKeyStore = KeyStore.getInstance(TYPE);
 			newKeyStore.load(null, newPassword.toCharArray());
 			PrivateKey privateKey = (PrivateKey) keyStorage.getKey(keyPairName, password.toCharArray());
 			Certificate cert = keyStorage.getCertificate(keyPairName);
 			newKeyStore.setKeyEntry(keyPairName, privateKey, newPassword.toCharArray(), new Certificate[] { cert });
 			System.out.println(file);
-
+			
 			newKeyStore.store(fos, newPassword.toCharArray());
 			return true;
-
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -278,7 +268,7 @@ public class MyKeyStorage {
 		} catch (UnrecoverableKeyException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} finally {
+		}finally {
 			if (fos != null) {
 				try {
 					fos.close();
@@ -290,7 +280,7 @@ public class MyKeyStorage {
 		}
 		return false;
 	}
-
+	
 	public void saveToFile() {
 		try {
 			if (file.exists()) {

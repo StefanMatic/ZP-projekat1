@@ -98,7 +98,7 @@ public class MyCode extends CodeV3 {
 		try {
 			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg1);
 
-			// Pravljenje CSR (Certificate Signing Request)
+			// Pravljenje CSR (Content sign request)
 			JcaX509CertificateHolder holder;
 			holder = new JcaX509CertificateHolder(cert);
 			JcaPKCS10CertificationRequestBuilder certificationRequestBuilder = new JcaPKCS10CertificationRequestBuilder(
@@ -229,7 +229,6 @@ public class MyCode extends CodeV3 {
 	public int loadKeypair(String arg0) {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
-
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);
 			X500Name subject = holder.getSubject();
@@ -342,18 +341,12 @@ public class MyCode extends CodeV3 {
 
 			// *************************************************
 
-			if(myKeyStore.isCertificateEntry(selectedCertificate)){
-				return 2;
-			}else if(myCertificate.getIssuerX500Principal().getName().equals(myCertificate.getSubjectX500Principal().getName())){
-				return 0;
-			}else{
-				return 1;
-			}
-			} catch (Exception e) {
+			return 0;
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		return -1;
+		return 0;
 	}
 
 	@Override
