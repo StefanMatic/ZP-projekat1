@@ -186,22 +186,14 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public String getCertPublicKeyAlgorithm(String arg0) {
-		try {
-            return myKeyStore.getCertificate(arg0).getPublicKey().getAlgorithm();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
 	public String getCertPublicKeyParameter(String arg0) {
-		try {
-            return myKeyStore.getCertificate(arg0).getSigAlgName();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	@Override
@@ -351,9 +343,6 @@ public class MyCode extends CodeV3 {
 
 			// *************************************************
 
-			System.out.println("*********8");
-			System.out.println(myCertificate.getPublicKey().getAlgorithm());
-			
 			if (myKeyStore.isCertificateEntry(selectedCertificate)) {
 				return 2;
 			} else if (myCertificate.getIssuerX500Principal().getName()

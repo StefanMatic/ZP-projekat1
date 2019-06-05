@@ -2559,3 +2559,6 @@ Stack Trace
 
 !ENTRY org.eclipse.jdt.debug 2 0 2019-06-05 12:46:02.474
 !MESSAGE Unable to find location of java.lang.Thread.setName() in debuggee JVM, for type java.lang.Thread
+
+!ENTRY org.eclipse.jdt.debug 2 0 2019-06-05 13:28:54.623
+!MESSAGE Unable to find location of java.lang.Thread.setName() in debuggee JVM, for type java.lang.Thread
