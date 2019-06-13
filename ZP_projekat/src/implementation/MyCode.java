@@ -1,9 +1,14 @@
 package implementation;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
 import java.io.Writer;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
@@ -17,13 +22,16 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,8 +57,9 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -67,6 +76,8 @@ public class MyCode extends CodeV3 {
 	private MyKeyStorage myKeyStore;
 	private int skipCerts = Integer.MAX_VALUE;
 	private String selectedCertificate;
+	private PKCS10CertificationRequest myCertificationRequest;
+	private Hashtable<String, String> ECCCurveNames = new Hashtable<String, String>();
 
 	// *******CONSTANTS********
 	// Version
@@ -84,6 +95,7 @@ public class MyCode extends CodeV3 {
 			myKeyStore = new MyKeyStorage();
 
 		selectedCertificate = null;
+		myCertificationRequest = null;
 	}
 
 	@Override
@@ -153,19 +165,15 @@ public class MyCode extends CodeV3 {
 				pemWriter.close();
 			} else if (arg2 == Constants.DER) {
 				FileOutputStream fos = new FileOutputStream(arg0);
-				if (arg3 == 0) {
-					fos.write(cert.getEncoded());
-				} else {
-					for (X509Certificate c : certChain) {
-						fos.write(c.getEncoded());
-					}
-				}
+				fos.write(cert.getEncoded());
 				fos.close();
 			}
 			writer.close();
 
 			return true;
-		} catch (Exception e) {
+		} catch (
+
+		Exception e) {
 			e.printStackTrace();
 		}
 
@@ -187,26 +195,36 @@ public class MyCode extends CodeV3 {
 	@Override
 	public String getCertPublicKeyAlgorithm(String arg0) {
 		try {
-            return myKeyStore.getCertificate(arg0).getPublicKey().getAlgorithm();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+			return myKeyStore.getCertificate(arg0).getPublicKey().getAlgorithm();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
 	public String getCertPublicKeyParameter(String arg0) {
+		// Ne valja. Mora da se popravi
 		try {
-            return myKeyStore.getCertificate(arg0).getSigAlgName();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+			return ECCCurveNames.get(arg0);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
 	public String getSubjectInfo(String arg0) {
-		// TODO Auto-generated method stub
+		try {
+			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg0);
+			String subjectInfo = cert.getSubjectDN().toString();
+			String helper = subjectInfo + ",SA=" + cert.getSigAlgName();
+
+			return helper.replaceAll(", ", ",");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return null;
 	}
 
@@ -218,19 +236,62 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public String importCSR(String arg0) {
-		// TODO Auto-generated method stub
+		try {
+			Reader reader = new FileReader(arg0);
+			PEMParser pemParser = new PEMParser(reader);
+
+			PKCS10CertificationRequest certificationRequest = (PKCS10CertificationRequest) pemParser.readObject();
+			myCertificationRequest = certificationRequest;
+
+			return certificationRequest.getSubject().toString();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		return null;
 	}
 
 	@Override
 	public boolean importCertificate(String arg0, String arg1) {
-		// TODO Auto-generated method stub
+		// arg0 - file; arg1 - keyPairName
+		FileInputStream fis = null;
+		try {
+			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+			
+			fis = new FileInputStream(arg0);
+			BufferedInputStream bufferedInputStream = new BufferedInputStream(fis);
+			
+			while (bufferedInputStream.available()>0) {
+				X509Certificate newCert = (X509Certificate) certFactory.generateCertificate(bufferedInputStream);
+				myKeyStore.setSertificate(arg1, newCert);
+			}
+			
+			myKeyStore.saveToFile();
+			
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			if (fis != null) {
+				try {
+					fis.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
 		return false;
 	}
 
 	@Override
 	public boolean importKeypair(String arg0, String arg1, String arg2) {
-		// arg0 - keypairName; arg1 - file; arg2 - password
+		// arg0 - keyPairName; arg1 - file; arg2 - password
 		return myKeyStore.importKeypair(arg0, arg1, arg2);
 	}
 
@@ -238,6 +299,9 @@ public class MyCode extends CodeV3 {
 	public int loadKeypair(String arg0) {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
+		System.out.println("77777777777777");
+		System.out.println(getCertPublicKeyParameter(arg0));
+		System.out.println("77777777777777");
 
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);
@@ -353,7 +417,7 @@ public class MyCode extends CodeV3 {
 
 			System.out.println("*********8");
 			System.out.println(myCertificate.getPublicKey().getAlgorithm());
-			
+
 			if (myKeyStore.isCertificateEntry(selectedCertificate)) {
 				return 2;
 			} else if (myCertificate.getIssuerX500Principal().getName()
@@ -403,9 +467,12 @@ public class MyCode extends CodeV3 {
 			return false;
 		}
 
+		// Provera da li vec postoji dati KeyPair
+		if (myKeyStore.containsAliases(arg0))
+			return false;
+
 		try {
 			ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(super.access.getPublicKeyECCurve());
-			// .getInstance(algorithm, provider)
 			KeyPairGenerator myGenerator = KeyPairGenerator.getInstance("EC", new BouncyCastleProvider());
 			myGenerator.initialize(ecGenSpec);
 			KeyPair pair = myGenerator.generateKeyPair();
@@ -423,6 +490,17 @@ public class MyCode extends CodeV3 {
 			Date notBefore = super.access.getNotBefore();
 			Date notAfter = super.access.getNotAfter();
 
+			System.out.println("***************");
+			String eccCurve = super.access.getPublicKeyECCurve();
+			String publicKeyParameter = super.access.getPublicKeyParameter();
+			String digestAlgorithm = super.access.getPublicKeyDigestAlgorithm();
+			System.out.println(publicKeyParameter);
+			System.out.println(digestAlgorithm);
+			System.out.println(eccCurve);
+			System.out.println("****************");
+
+			ECCCurveNames.put(arg0, eccCurve);
+
 			// Pravljenje sertifikata
 			X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
 			if (!country.equals(""))
@@ -439,10 +517,11 @@ public class MyCode extends CodeV3 {
 				nameBuilder.addRDN(BCStyle.CN, commonName);
 
 			X500Name holder = nameBuilder.build();
+			X500Name subject = holder;
 			BigInteger serialNumber = new BigInteger(super.access.getSerialNumber());
 
 			X509v3CertificateBuilder generator = new JcaX509v3CertificateBuilder(holder, serialNumber, notBefore,
-					notAfter, holder, myPublicKey);
+					notAfter, subject, myPublicKey);
 
 			// ******Subject key identifier*******
 			boolean extension1Critical = super.access.isCritical(Constants.SKID);
