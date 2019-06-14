@@ -2,6 +2,7 @@ package implementation;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -27,7 +28,10 @@ import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -40,6 +44,7 @@ import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -53,10 +58,16 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaCertStore;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSProcessableByteArray;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.CMSSignedDataGenerator;
+import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -64,11 +75,14 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
+import org.bouncycastle.util.Store;
 import org.bouncycastle.util.encoders.Hex;
 
 import code.GuiException;
 import gui.Constants;
+import gui.GuiInterfaceV3;
 import x509.v3.CodeV3;
 import x509.v3.GuiV3;
 
@@ -77,7 +91,7 @@ public class MyCode extends CodeV3 {
 	private int skipCerts = Integer.MAX_VALUE;
 	private String selectedCertificate;
 	private PKCS10CertificationRequest myCertificationRequest;
-	private Hashtable<String, String> ECCCurveNames = new Hashtable<String, String>();
+	private SubjectPublicKeyInfo keyInfo;
 
 	// *******CONSTANTS********
 	// Version
@@ -96,14 +110,15 @@ public class MyCode extends CodeV3 {
 
 		selectedCertificate = null;
 		myCertificationRequest = null;
+		keyInfo = null;
 	}
 
 	@Override
 	public boolean canSign(String arg0) {
-		//arg0 - keypair_name
+		// arg0 - keypair_name
 		X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg0);
-		
-		//Ukoliko metoda vrati razultat != -1, sertifikat moze da se smatra CA
+
+		// Ukoliko metoda vrati razultat != -1, sertifikat moze da se smatra CA
 		return (cert.getBasicConstraints() != -1);
 	}
 
@@ -209,7 +224,48 @@ public class MyCode extends CodeV3 {
 	public String getCertPublicKeyParameter(String arg0) {
 		// Ne valja. Mora da se popravi
 		try {
-			return ECCCurveNames.get(arg0);
+			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg0);
+			// return sertifikat.getPublicKey().getFormat();
+			PublicKey publicKey = cert.getPublicKey();
+
+			if (cert.getPublicKey().getAlgorithm().equals("RSA")) {
+				java.security.interfaces.RSAPublicKey rsaPublicKey = (java.security.interfaces.RSAPublicKey) cert
+						.getPublicKey();
+
+				System.out.println(String.valueOf(rsaPublicKey.getModulus().bitLength()));
+				return String.valueOf(rsaPublicKey.getModulus().bitLength());
+			}
+			if (cert.getPublicKey().getAlgorithm().equals("DSA")) {
+				DSAPublicKey dsaPublicKey = (DSAPublicKey) cert.getPublicKey();
+				System.out.println(String.valueOf(dsaPublicKey.getParams().getP().bitLength() + " dsa P "));
+
+				return String.valueOf(dsaPublicKey.getParams().getP().bitLength());
+			}
+
+			if (cert.getPublicKey().getAlgorithm().equals("EC")) {
+				ECPrivateKey ecPrivateKey = (ECPrivateKey) myKeyStore.getKey(arg0,
+						myKeyStore.getPassword().toCharArray());
+				ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
+
+				String[] ec_sets = new String[] { "X9.62", "SEC", "NIST" };
+				String[][] curves_by_set = new String[][] { { "prime256v1" },
+						{ "secp256k1", "secp256r1", "secp384r1", "secp521r1", "sect283k1", "sect283r1", "sect409k1",
+								"sect409r1", "sect571k1", "sect571r1" },
+						{ "P-256", "P-384", "P-521", "B-283", "B-409", "B-571" } };
+
+				for (int i = 0; i < 3; i++) {
+					for (int j = 0; j < curves_by_set[i].length; j++) {
+
+						if (ecParameterSpec.toString().substring(0, curves_by_set[i][j].length())
+								.equals(org.bouncycastle.jce.ECNamedCurveTable.getParameterSpec(curves_by_set[i][j])
+										.getName())) {
+
+							return curves_by_set[i][j];
+
+						}
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -245,6 +301,7 @@ public class MyCode extends CodeV3 {
 
 			PKCS10CertificationRequest certificationRequest = (PKCS10CertificationRequest) pemParser.readObject();
 			myCertificationRequest = certificationRequest;
+			keyInfo = myCertificationRequest.getSubjectPublicKeyInfo();
 
 			return certificationRequest.getSubject().toString();
 		} catch (FileNotFoundException e) {
@@ -264,17 +321,17 @@ public class MyCode extends CodeV3 {
 		FileInputStream fis = null;
 		try {
 			CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-			
+
 			fis = new FileInputStream(arg0);
 			BufferedInputStream bufferedInputStream = new BufferedInputStream(fis);
-			
-			while (bufferedInputStream.available()>0) {
+
+			while (bufferedInputStream.available() > 0) {
 				X509Certificate newCert = (X509Certificate) certFactory.generateCertificate(bufferedInputStream);
 				myKeyStore.setSertificate(arg1, newCert);
 			}
-			
+
 			myKeyStore.saveToFile();
-			
+
 			return true;
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -303,6 +360,11 @@ public class MyCode extends CodeV3 {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
 
+		System.out.println("5555555555555555555555555");
+		System.out.println(getCertPublicKeyParameter(arg0));
+		System.out.println(getCertPublicKeyAlgorithm(arg0));
+		System.out.println("5555555555555555555555555");
+
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);
 			X500Name subject = holder.getSubject();
@@ -310,13 +372,12 @@ public class MyCode extends CodeV3 {
 
 			if (issuer != null) {
 				super.access.setIssuer(issuer.toString());
-
-				System.out.println(myCertificate.getSigAlgName());
 				super.access.setIssuerSignatureAlgorithm(myCertificate.getSigAlgName());
 			}
 
 			super.access.setVersion(V3);
-			super.access.setPublicKeyAlgorithm("EC");
+			super.access.setPublicKeyAlgorithm(getCertPublicKeyAlgorithm(arg0));
+			super.access.setSubjectSignatureAlgorithm(getCertPublicKeyAlgorithm(arg0));
 			super.access.setNotAfter(myCertificate.getNotAfter());
 			super.access.setNotBefore(myCertificate.getNotBefore());
 			super.access.setSerialNumber(myCertificate.getSerialNumber().toString());
@@ -415,9 +476,6 @@ public class MyCode extends CodeV3 {
 
 			// *************************************************
 
-			System.out.println("*********8");
-			System.out.println(myCertificate.getPublicKey().getAlgorithm());
-
 			if (myKeyStore.isCertificateEntry(selectedCertificate)) {
 				return 2;
 			} else if (myCertificate.getIssuerX500Principal().getName()
@@ -471,6 +529,11 @@ public class MyCode extends CodeV3 {
 		if (myKeyStore.containsAliases(arg0))
 			return false;
 
+		if (super.access.getPublicKeyAlgorithm().equals("RSA")) {
+			GuiV3.reportError("Must be EC algorithm");
+			return false;
+		}
+
 		try {
 			ECGenParameterSpec ecGenSpec = new ECGenParameterSpec(super.access.getPublicKeyECCurve());
 			KeyPairGenerator myGenerator = KeyPairGenerator.getInstance("EC", new BouncyCastleProvider());
@@ -498,8 +561,6 @@ public class MyCode extends CodeV3 {
 			System.out.println(digestAlgorithm);
 			System.out.println(eccCurve);
 			System.out.println("****************");
-
-			ECCCurveNames.put(arg0, eccCurve);
 
 			// Pravljenje sertifikata
 			X500NameBuilder nameBuilder = new X500NameBuilder(BCStyle.INSTANCE);
@@ -540,69 +601,43 @@ public class MyCode extends CodeV3 {
 			String[] extension2Arg = super.access.getAlternativeName(Constants.IAN);
 
 			if (extension2Arg.length != 0) {
-				GeneralName[] generalName = new GeneralName[extension2Arg.length];
-				System.out.println(extension2Arg.length);
+				String[] ext2Arg = extension2Arg[0].split(" ");
+				System.out.println(ext2Arg);
+				GeneralName[] generalName = new GeneralName[ext2Arg.length];
+				System.out.println(ext2Arg.length);
 
-				for (int i = 0; i < extension2Arg.length; i++) {
-					String name = extension2Arg[i];
-					System.out.println(name);
+				for (int i = 0; i < ext2Arg.length; i++) {
+					String name = ext2Arg[i];
+					System.out.println(name + "jjjjj");
+
+					String[] spliter = name.split("=");
 
 					// Provaliti zasto mi ne da da stavim GeneralName.otherName
 					// Nabaviti dobre regex-e
 					int gName = GeneralName.dNSName;
-
 					System.out.println(gName);
-					// DNS name
-					if (name.matches("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$")) {
-						System.out.println("DNS");
+					System.out.println(spliter[0]);
+					System.out.println(spliter[1]);
+
+					if (spliter[0].equals("DNSName"))
 						gName = GeneralName.dNSName;
-					}
-					// RFC822 name
-					if (name.matches(
-							"(?:(?:\\r\\n)?[ \\t])*(?:(?:(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?"
-									+ "[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)"
-									+ "(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*|(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]"
-									+ "|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)*\\<(?:(?:\\r\\n)?[ \\t])*(?:@(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:"
-									+ "(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*(?:,@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?"
-									+ "[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*)*:(?:(?:\\r\\n)?[ \\t])*)?(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\"
-									+ "\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+"
-									+ "(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*\\>(?:(?:\\r\\n)?"
-									+ "[ \\t])*)|(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)*:(?:(?:\\r\\n)?[ \\t])*(?:(?:(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\""
-									+ "(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-"
-									+ "\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*|(?:[^()<>@,;:\\\\\".\\[\\] \\"
-									+ "000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)*\\<(?:(?:\\r\\n)?[ \\t])*(?:@(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\."
-									+ "(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*(?:,@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\]"
-									+ "(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*)*:(?:(?:\\r\\n)?[ \\t])*)?(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:"
-									+ "[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:"
-									+ "\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*\\>(?:(?:\\r\\n)?[ \\t])*)(?:,\\s*(?:(?:[^()<>@,;:\\\\\".\\[\\] \\"
-									+ "000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)"
-									+ "?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*|(?:[^()<>@,;:\\\\\".\\[\\] \\"
-									+ "000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)*\\<(?:(?:\\r\\n)?[ \\t])*(?:@(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\"
-									+ "000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*(?:,@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?"
-									+ "[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*)*:(?:(?:\\r\\n)?[ \\t])*)?(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?="
-									+ "[\\[\"()<>@,;:\\\\\".\\[\\]]))|\"(?:[^\\\"\\r\\\\]|\\\\.|(?:(?:\\r\\n)?[ \\t]))*\"(?:(?:\\r\\n)?[ \\t])*))*@(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*)(?:\\.(?:(?:\\r\\n)?[ \\t])*(?:[^()<>@,;:\\\\\".\\[\\] \\000-\\031]+(?:(?:(?:\\r\\n)?[ \\t])+|\\Z|(?=[\\[\"()<>@,;:\\\\\".\\"
-									+ "[\\]]))|\\[([^\\[\\]\\r\\\\]|\\\\.)*\\](?:(?:\\r\\n)?[ \\t])*))*\\>(?:(?:\\r\\n)?[ \\t])*))*)?;\\s*)")) {
-						System.out.println("RFC822");
+					if (spliter[0].equals("RFC822Name"))
 						gName = GeneralName.rfc822Name;
-					}
-					// X400 name
-					if (name.matches("x400:([a-z]*=.*?\\\\;)*(;|$)")) {
-						System.out.println("x400");
-						gName = GeneralName.x400Address;
-					}
-					// Directory name
-					if (name.matches("^(\\w+\\.?)*\\w+$ ")) {
-						System.out.println("direcotry name");
-						gName = GeneralName.directoryName;
-					}
-					// URI - Uniform Resource Identifier
-					if (name.matches("^(https?|ftp|file)://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]")) {
-						System.out.println("URI");
+					if (spliter[0].equals("EDIPartyName"))
+						gName = GeneralName.ediPartyName;
+					if (spliter[0].equals("IPAddressName"))
+						gName = GeneralName.iPAddress;
+					if (spliter[0].equals("URIName"))
 						gName = GeneralName.uniformResourceIdentifier;
-					}
+					if (spliter[0].equals("x400Address"))
+						gName = GeneralName.x400Address;
+					if (spliter[0].equals("Directory"))
+						gName = GeneralName.directoryName;
+
+					gName = GeneralName.rfc822Name;
 
 					// dodati jos dodataka
-					generalName[i] = new GeneralName(gName, name);
+					generalName[i] = new GeneralName(gName, spliter[1]);
 				}
 				generator.addExtension(Extension.issuerAlternativeName, extendion2Critical,
 						new GeneralNames(generalName));
@@ -658,10 +693,190 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public boolean signCSR(String arg0, String arg1, String arg2) {
-		//arg0 - file, arg1 - keypair_name; arg2 - algorithm
-		
-		
-		
+		// arg0 - file, arg1 - keypair_name; arg2 - algorithm
+
+		if (access.getVersion() != Constants.V3) {
+			GuiV3.reportError("Wrong version");
+			return false;
+		}
+
+		Certificate myCertificate = null;
+		Certificate[] myCertificateChain = null;
+
+		myCertificate = myKeyStore.getCertificate(arg1);
+		myCertificateChain = myKeyStore.getCertificateChain(arg1);
+
+		if (myCertificateChain == null) {
+			GuiV3.reportError("Keypair doesn't exist.");
+			return false;
+		}
+
+		try {
+			System.out.println(myCertificate);
+			Certificate myIssuer = myCertificateChain[0];
+			System.out.println(myIssuer);
+
+			X509CertificateHolder myIssuerCertificateHolder = new X509CertificateHolder(myIssuer.getEncoded());
+			PrivateKey privateKey = (PrivateKey) myKeyStore.getKey(arg1, myKeyStore.getPassword().toCharArray());
+			PublicKey publicKey = myIssuer.getPublicKey();
+
+			// Sva polja (C,S,L,O...)
+			String mySubject = super.access.getSubject();
+
+			Date notBefore = super.access.getNotBefore();
+			Date notAfter = super.access.getNotAfter();
+
+			BigInteger serialNumber = new BigInteger(super.access.getSerialNumber());
+
+			X509v3CertificateBuilder generator = null;
+			generator = new X509v3CertificateBuilder(myIssuerCertificateHolder.getSubject(), serialNumber, notBefore,
+					notAfter, new X500Name(mySubject), myCertificationRequest.getSubjectPublicKeyInfo());
+
+			// ***************Ekstenzija 1***************
+			boolean extension1Critical = super.access.isCritical(Constants.SKID);
+			boolean extension1Enabled = super.access.getEnabledSubjectKeyID();
+
+			if (extension1Enabled) {
+				SubjectKeyIdentifier subjectKeyId = new SubjectKeyIdentifier(this.keyInfo.getEncoded());
+
+				generator.addExtension(Extension.subjectKeyIdentifier, extension1Critical, subjectKeyId);
+			}
+			// *******************************************
+
+			// ***************Ekstenzija 2***************
+			boolean extension2Critical = super.access.isCritical(Constants.IAN);
+			String[] extension2Arg = super.access.getAlternativeName(Constants.IAN);
+
+			if (extension2Arg.length != 0) {
+				String[] ext2Arg = extension2Arg[0].split(" ");
+				System.out.println(ext2Arg);
+				GeneralName[] generalName = new GeneralName[ext2Arg.length];
+				System.out.println(ext2Arg.length);
+
+				for (int i = 0; i < ext2Arg.length; i++) {
+					String name = ext2Arg[i];
+
+					String[] spliter = name.split("=");
+
+					// Provaliti zasto mi ne da da stavim GeneralName.otherName
+					// Nabaviti dobre regex-e
+					int gName = GeneralName.dNSName;
+					System.out.println(gName);
+					System.out.println(spliter[0]);
+					System.out.println(spliter[1]);
+
+					if (spliter[0].equals("DNSName"))
+						gName = GeneralName.dNSName;
+					if (spliter[0].equals("RFC822Name"))
+						gName = GeneralName.rfc822Name;
+					if (spliter[0].equals("EDIPartyName"))
+						gName = GeneralName.ediPartyName;
+					if (spliter[0].equals("IPAddressName"))
+						gName = GeneralName.iPAddress;
+					if (spliter[0].equals("URIName"))
+						gName = GeneralName.uniformResourceIdentifier;
+					if (spliter[0].equals("x400Address"))
+						gName = GeneralName.x400Address;
+					if (spliter[0].equals("Directory"))
+						gName = GeneralName.directoryName;
+
+					gName = GeneralName.rfc822Name;
+
+					// dodati jos dodataka
+					generalName[i] = new GeneralName(gName, spliter[1]);
+				}
+				generator.addExtension(Extension.issuerAlternativeName, extension2Critical,
+						new GeneralNames(generalName));
+
+			}
+			// ************************************************
+
+			// **************Ekstenzija 3**********************
+
+			boolean extension3Critical = super.access.isCritical(Constants.IAP);
+			boolean extension3enable = super.access.getInhibitAnyPolicy();
+			
+			if (extension3enable) {
+				if (skipCerts == -1)
+					this.skipCerts = Integer.MAX_VALUE;
+
+				String extension3SkipCerts = super.access.getSkipCerts();
+				BigInteger skipCertsBigInt = new java.math.BigInteger(extension3SkipCerts);
+				ASN1Integer asnInt = new ASN1Integer(skipCertsBigInt);
+
+				generator.addExtension(Extension.inhibitAnyPolicy, extension3Critical, asnInt);
+			}
+			// ************************************************
+
+			CMSSignedDataGenerator cmsSignedDataGenerator = new CMSSignedDataGenerator();
+
+			LinkedList<Certificate> newCertificates = new LinkedList<Certificate>();
+			for (Certificate cert : myCertificateChain) {
+				newCertificates.add(cert);
+			}
+
+			Store certStore = new JcaCertStore(newCertificates);
+			ContentSigner signer = new JcaContentSignerBuilder(arg2).build(privateKey);
+
+			org.bouncycastle.asn1.x509.Certificate cert = null;
+			try {
+
+				// Generating certificate
+				X509CertificateHolder holder = generator.build(signer);
+
+				// Converting certificate from bouncy castle specification to java specification
+				cert = holder.toASN1Structure();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
+
+			// Adding signer to cms generator.
+			cmsSignedDataGenerator.addSignerInfoGenerator(
+					new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().build()).build(signer,
+							new X509CertificateHolder(myIssuer.getEncoded())));
+
+			// adding signer chain to cms generator
+			cmsSignedDataGenerator.addCertificates(certStore);
+
+			// Adding signed certificate.
+			CMSSignedData signed = cmsSignedDataGenerator.generate(
+					new CMSProcessableByteArray(PKCSObjectIdentifiers.x509Certificate, cert.getEncoded()), true);
+			
+			File f = new File(arg0);
+			if (f.exists()) {
+				f.delete();
+			}
+
+			FileOutputStream fos = null;
+			try {
+				fos = new FileOutputStream(f);
+				fos.write(signed.getEncoded());
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				if (fos != null) {
+					fos.close();
+				}
+			}
+
+			return true;
+
+		} catch (CertificateEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OperatorCreationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CMSException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
 		return false;
 	}
 }

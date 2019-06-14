@@ -1,0 +1,319 @@
+package implementation;
+
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.UnrecoverableKeyException;
+import java.security.KeyStore.Entry;
+import java.security.KeyStore.PasswordProtection;
+import java.security.KeyStore.ProtectionParameter;
+import java.security.cert.X509Certificate;
+import java.util.Enumeration;
+import java.util.UUID;
+
+public class MyKeyStorage {
+	private KeyStore keyStorage;
+	private String password = "ECalgoritam";
+	private PasswordProtection passwordProtection;
+	private File file;
+	private String myFilePath = "MyKeyStore.p12";
+
+	public static final String TYPE = "pkcs12";
+
+	public MyKeyStorage() {
+		try {
+			passwordProtection = new PasswordProtection(password.toCharArray());
+
+			file = new File(myFilePath);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+
+			keyStorage = KeyStore.getInstance(TYPE);
+			keyStorage.load(null, null);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+		makeNewPasswordProtection();
+	}
+
+	public PasswordProtection getPasswordProtection() {
+		return passwordProtection;
+	}
+
+	public void makeNewPasswordProtection() {
+		passwordProtection = new PasswordProtection(password.toCharArray());
+	}
+
+	X509Certificate getCertificate(String alias) {
+		try {
+			return (X509Certificate) keyStorage.getCertificate(alias);
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public void setSertificate(String alias, X509Certificate certificate) {
+		try {
+			keyStorage.setCertificateEntry(alias, certificate);
+			saveToFile();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public Certificate[] getCertificateChain(String arg0) {
+		try {
+			return keyStorage.getCertificateChain(arg0);
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	Enumeration<String> getAliases() {
+		FileInputStream fis = null;
+		try {
+			System.out.println(file.length());
+			if (file.exists() && file.length() != 0) {
+				fis = new FileInputStream(file);
+				keyStorage = KeyStore.getInstance("PKCS12");
+				keyStorage.load(fis, password.toCharArray());
+				fis.close();
+			}
+			return keyStorage.aliases();
+
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (fis != null) {
+				try {
+					fis.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public boolean containsAliases(String alias) {
+		try {
+			return keyStorage.containsAlias(alias);
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
+	}
+	
+	public boolean isCertificateEntry(String alias) {
+		try {
+			return keyStorage.isCertificateEntry(alias);
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public void removeKeyPair(String arg0) {
+		try {
+			keyStorage.deleteEntry(arg0);
+			saveToFile();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	void resetKeyStore() {
+		try {
+			keyStorage.load(null, null);
+			saveToFile();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+	}
+
+	public boolean isKeyEntry(String string) {
+		try {
+			return keyStorage.isKeyEntry(string);
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public Key getKey(String alias, char[] charArray) {
+		try {
+			return keyStorage.getKey(alias, charArray);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public void setKeyEntry(String arg0, PrivateKey privateKey, char[] myPass, Certificate[] chain) {
+		try {
+			keyStorage.setKeyEntry(arg0, privateKey, myPass, chain);
+			saveToFile();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+	}
+
+	public void setEntry(String alias, Entry privateEntry, ProtectionParameter protectionParameter) {
+		try {
+			keyStorage.setEntry(alias, privateEntry, protectionParameter);
+			saveToFile();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public boolean importKeypair(String keyPairName, String newFile, String newPassword) {
+		FileInputStream fis = null;
+		try {
+			fis = new FileInputStream(newFile);
+			KeyStore newKeyStore = KeyStore.getInstance(TYPE);
+			newKeyStore.load(fis, newPassword.toCharArray());
+			Certificate[] newChain = newKeyStore.getCertificateChain(keyPairName);
+
+			PrivateKey newPrivateKey = (PrivateKey) newKeyStore.getKey(keyPairName, newPassword.toCharArray());
+			if (newPrivateKey == null)
+				return false;
+
+			keyStorage.setKeyEntry(keyPairName, newPrivateKey, password.toCharArray(), newChain);
+			
+			fis.close();
+
+			saveToFile();
+			return true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			if (fis != null) {
+				try {
+					fis.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
+
+	public boolean exportKeypair(String keyPairName, String file, String newPassword) {
+		FileOutputStream fos = null;
+
+		try {
+			fos = new FileOutputStream(file);
+
+			KeyStore newKeyStore = KeyStore.getInstance(TYPE);
+			newKeyStore.load(null, newPassword.toCharArray());
+			PrivateKey privateKey = (PrivateKey) keyStorage.getKey(keyPairName, password.toCharArray());
+			Certificate cert = keyStorage.getCertificate(keyPairName);
+			newKeyStore.setKeyEntry(keyPairName, privateKey, newPassword.toCharArray(), new Certificate[] { cert });
+			System.out.println(file);
+
+			newKeyStore.store(fos, newPassword.toCharArray());
+			return true;
+
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} finally {
+			if (fos != null) {
+				try {
+					fos.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return false;
+	}
+
+	public void saveToFile() {
+		try {
+			if (file.exists()) {
+				FileOutputStream fos = new FileOutputStream(file);
+				keyStorage.store(fos, password.toCharArray());
+				fos.close();
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+}

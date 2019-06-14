@@ -162,7 +162,9 @@ public class MyKeyStorage {
 
 	void resetKeyStore() {
 		try {
+			keyStorage = KeyStore.getInstance(TYPE);
 			keyStorage.load(null, null);
+			
 			saveToFile();
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -223,7 +225,7 @@ public class MyKeyStorage {
 				return false;
 
 			keyStorage.setKeyEntry(keyPairName, newPrivateKey, password.toCharArray(), newChain);
-
+			
 			fis.close();
 
 			saveToFile();

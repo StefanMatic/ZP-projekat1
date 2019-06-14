@@ -1,4 +1,5 @@
 EC
+RSA
 subject key identifier
 issuer alternative name
 inhibit any policy

@@ -1,18 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.X500NameBuilder"/>
-<fullyQualifiedTypeName name="java.util.Date"/>
-<fullyQualifiedTypeName name="org.bouncycastle.cert.X509v3CertificateBuilder"/>
-<fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder"/>
-<fullyQualifiedTypeName name="java.security.PublicKey"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1Integer"/>
-<fullyQualifiedTypeName name="org.bouncycastle.cert.X509CertificateHolder"/>
-<fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaX509CertificateConverter"/>
-<fullyQualifiedTypeName name="java.security.PrivateKey"/>
-<fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaX509CertificateHolder"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.X500Name"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.RDN"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.AttributeTypeAndValue"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.style.BCStyle"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.SubjectPublicKeyInfo"/>
 <fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils"/>
@@ -26,7 +13,6 @@
 <fullyQualifiedTypeName name="x509.v3.GuiV3"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.GeneralName"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.Extension"/>
-<fullyQualifiedTypeName name="java.util.LinkedList"/>
 <fullyQualifiedTypeName name="java.util.Collection"/>
 <fullyQualifiedTypeName name="java.util.Iterator"/>
 <fullyQualifiedTypeName name="java.util.List"/>
@@ -34,7 +20,6 @@
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1OctetString"/>
 <fullyQualifiedTypeName name="java.nio.ByteBuffer"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.SubjectKeyIdentifier"/>
-<fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="java.security.KeyStore.Entry"/>
 <fullyQualifiedTypeName name="java.security.KeyStore.ProtectionParameter"/>
 <fullyQualifiedTypeName name="java.security.KeyStore.PrivateKeyEntry"/>
@@ -42,7 +27,6 @@
 <fullyQualifiedTypeName name="implementation.MyKeyStorage"/>
 <fullyQualifiedTypeName name="java.security.KeyStore"/>
 <fullyQualifiedTypeName name="java.io.Writer"/>
-<fullyQualifiedTypeName name="java.io.FileOutputStream"/>
 <fullyQualifiedTypeName name="org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder"/>
 <fullyQualifiedTypeName name="org.bouncycastle.operator.jcajce.JcaContentSignerBuilder"/>
 <fullyQualifiedTypeName name="org.bouncycastle.operator.ContentSigner"/>
@@ -58,6 +42,22 @@
 <fullyQualifiedTypeName name="java.security.cert.CertificateFactory"/>
 <fullyQualifiedTypeName name="java.io.FileInputStream"/>
 <fullyQualifiedTypeName name="java.io.BufferedInputStream"/>
-<fullyQualifiedTypeName name="java.security.cert.Certificate"/>
 <fullyQualifiedTypeName name="java.security.cert.X509Certificate"/>
+<fullyQualifiedTypeName name="gui.GuiInterfaceV3"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cms.CMSSignedDataGenerator"/>
+<fullyQualifiedTypeName name="java.util.LinkedList"/>
+<fullyQualifiedTypeName name="java.security.cert.Certificate"/>
+<fullyQualifiedTypeName name="org.bouncycastle.util.Store"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaCertStore"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder"/>
+<fullyQualifiedTypeName name="org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cms.CMSProcessableByteArray"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cms.CMSSignedData"/>
+<fullyQualifiedTypeName name="org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers"/>
+<fullyQualifiedTypeName name="java.io.File"/>
+<fullyQualifiedTypeName name="java.io.FileOutputStream"/>
+<fullyQualifiedTypeName name="java.security.interfaces.ECPrivateKey"/>
+<fullyQualifiedTypeName name="java.security.interfaces.DSAPublicKey"/>
+<fullyQualifiedTypeName name="java.security.spec.ECParameterSpec"/>
+<fullyQualifiedTypeName name="org.bouncycastle.jce.ECNamedCurveTable"/>
 </qualifiedTypeNameHistroy>
