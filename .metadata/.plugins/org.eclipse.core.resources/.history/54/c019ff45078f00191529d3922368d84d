@@ -410,6 +410,11 @@ public class MyCode extends CodeV3 {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
 
+		System.out.println("5555555555555555555555555");
+		System.out.println(getCertPublicKeyParameter(arg0));
+		System.out.println(getCertPublicKeyAlgorithm(arg0));
+		System.out.println("5555555555555555555555555");
+
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);
 			X500Name subject = holder.getSubject();
