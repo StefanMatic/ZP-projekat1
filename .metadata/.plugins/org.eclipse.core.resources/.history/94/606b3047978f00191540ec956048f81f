@@ -174,9 +174,9 @@ public class MyCode extends CodeV3 {
 
 			if (arg2 == Constants.PEM) {
 				JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
-				if (arg3 == 0) {
-					pemWriter.writeObject(cert);
-				} else if (certChain != null) {
+
+				pemWriter.writeObject(cert);
+				if (arg3 == 1 && certChain!= null) {
 					for (X509Certificate c : certChain) {
 						pemWriter.writeObject(c);
 					}
@@ -441,9 +441,6 @@ public class MyCode extends CodeV3 {
 	public int loadKeypair(String arg0) {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
-		if (myCertificate == null) {
-			System.out.println("Nija ga naslo u bazi");
-		}
 
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);

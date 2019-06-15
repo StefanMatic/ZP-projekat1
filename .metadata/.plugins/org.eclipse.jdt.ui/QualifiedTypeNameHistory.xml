@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x500.style.BCStyle"/>
-<fullyQualifiedTypeName name="org.bouncycastle.asn1.x509.SubjectPublicKeyInfo"/>
 <fullyQualifiedTypeName name="org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1Primitive"/>
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.ASN1InputStream"/>
@@ -40,7 +38,6 @@
 <fullyQualifiedTypeName name="org.bouncycastle.openssl.PEMParser"/>
 <fullyQualifiedTypeName name="java.util.Hashtable"/>
 <fullyQualifiedTypeName name="java.security.cert.CertificateFactory"/>
-<fullyQualifiedTypeName name="java.io.FileInputStream"/>
 <fullyQualifiedTypeName name="java.io.BufferedInputStream"/>
 <fullyQualifiedTypeName name="java.security.cert.X509Certificate"/>
 <fullyQualifiedTypeName name="gui.GuiInterfaceV3"/>
@@ -56,8 +53,11 @@
 <fullyQualifiedTypeName name="org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers"/>
 <fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="java.io.FileOutputStream"/>
-<fullyQualifiedTypeName name="java.security.interfaces.ECPrivateKey"/>
 <fullyQualifiedTypeName name="java.security.interfaces.DSAPublicKey"/>
 <fullyQualifiedTypeName name="java.security.spec.ECParameterSpec"/>
 <fullyQualifiedTypeName name="org.bouncycastle.jce.ECNamedCurveTable"/>
+<fullyQualifiedTypeName name="java.security.interfaces.ECPrivateKey"/>
+<fullyQualifiedTypeName name="java.io.FileInputStream"/>
+<fullyQualifiedTypeName name="org.bouncycastle.cms.CMSTypedData"/>
+<fullyQualifiedTypeName name="org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey"/>
 </qualifiedTypeNameHistroy>

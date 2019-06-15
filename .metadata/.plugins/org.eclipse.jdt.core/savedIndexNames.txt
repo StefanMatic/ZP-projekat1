@@ -2,7 +2,6 @@ INDEX VERSION 1.131+C:\Users\LENOVO\Documents\Faks\8_semestar\ZP\Projekat\.metad
 326983854.index
 3964918290.index
 1744031449.index
-1379471983.index
 1180489742.index
 1394848873.index
 1110334383.index

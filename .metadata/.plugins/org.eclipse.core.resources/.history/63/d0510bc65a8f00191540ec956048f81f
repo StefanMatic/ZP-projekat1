@@ -169,21 +169,20 @@ public class MyCode extends CodeV3 {
 		// arg0 - file; arg1 - keypairName; arg2 - encoding; arg3 - format
 		try {
 			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg1);
-			X509Certificate[] certChain = (X509Certificate[]) myKeyStore.getCertificateChain(arg1);
+			X509Certificate[] certChain = (X509Certificate[]) myKeyStore.getCertificateChain(arg0);
 			Writer writer = new FileWriter(arg0);
 
 			if (arg2 == Constants.PEM) {
 				JcaPEMWriter pemWriter = new JcaPEMWriter(writer);
 				if (arg3 == 0) {
 					pemWriter.writeObject(cert);
-				} else if (certChain != null) {
+				} else {
 					for (X509Certificate c : certChain) {
 						pemWriter.writeObject(c);
 					}
 				}
 				pemWriter.flush();
 				pemWriter.close();
-				writer.close();
 			} else if (arg2 == Constants.DER) {
 				FileOutputStream fos = new FileOutputStream(arg0);
 				fos.write(cert.getEncoded());
@@ -225,6 +224,7 @@ public class MyCode extends CodeV3 {
 
 	@Override
 	public String getCertPublicKeyParameter(String arg0) {
+		// Ne valja. Mora da se popravi
 		try {
 			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg0);
 			// return sertifikat.getPublicKey().getFormat();
@@ -272,38 +272,6 @@ public class MyCode extends CodeV3 {
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	void loadPanel(String alias) {
-		X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(alias);
-
-		if (cert.getPublicKey().getAlgorithm().equals("EC")) {
-			ECPrivateKey ecPrivateKey = (ECPrivateKey) myKeyStore.getKey(alias, myKeyStore.getPassword().toCharArray());
-
-			if (ecPrivateKey == null)
-				return;
-
-			ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
-
-			String[] ec_sets = new String[] { "X9.62", "SEC", "NIST" };
-			String[][] curves_by_set = new String[][] { { "prime256v1" },
-					{ "secp256k1", "secp256r1", "secp384r1", "secp521r1", "sect283k1", "sect283r1", "sect409k1",
-							"sect409r1", "sect571k1", "sect571r1" },
-					{ "P-256", "P-384", "P-521", "B-283", "B-409", "B-571" } };
-
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < curves_by_set[i].length; j++) {
-
-					if (ecParameterSpec.toString().substring(0, curves_by_set[i][j].length()).equals(
-							org.bouncycastle.jce.ECNamedCurveTable.getParameterSpec(curves_by_set[i][j]).getName())) {
-
-						access.setPublicKeyECCurve(curves_by_set[i][j]);
-						access.setPublicKeyParameter(ec_sets[i]);
-
-					}
-				}
-			}
-		}
 	}
 
 	@Override
@@ -441,9 +409,6 @@ public class MyCode extends CodeV3 {
 	public int loadKeypair(String arg0) {
 		selectedCertificate = arg0;
 		X509Certificate myCertificate = myKeyStore.getCertificate(selectedCertificate);
-		if (myCertificate == null) {
-			System.out.println("Nija ga naslo u bazi");
-		}
 
 		try {
 			JcaX509CertificateHolder holder = new JcaX509CertificateHolder(myCertificate);
@@ -555,8 +520,6 @@ public class MyCode extends CodeV3 {
 			}
 
 			// *************************************************
-
-			loadPanel(selectedCertificate);
 
 			if (myKeyStore.isCertificateEntry(selectedCertificate)) {
 				return 2;
@@ -890,6 +853,7 @@ public class MyCode extends CodeV3 {
 			// Generating certificate
 			X509Certificate signedCertificate = new JcaX509CertificateConverter()
 					.getCertificate(generator.build(signer));
+
 
 			LinkedList<Certificate> newCertificates = new LinkedList<Certificate>();
 			newCertificates.add(signedCertificate);

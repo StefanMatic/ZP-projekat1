@@ -8,7 +8,7 @@
 	</section>
 	<section name="org.eclipse.jdt.debug.ui.MAIN_METHOD_SELECTION_DIALOG">
 		<item value="true" key="ShowStatusLine"/>
-		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0D;&#x0A;&lt;History&gt;&#x0D;&#x0A;&lt;historyRootNode&gt;&#x0D;&#x0A;&lt;infoNode&gt;=ZP_projekat/C:\/Users\/LENOVO\/Documents\/Faks\/8_semestar\/ZP\/Bouncy Castle jar\/bcmail-jdk15on-161.jar&amp;lt;org.bouncycastle.mail.smime.examples(CreateCompressedMail.class[CreateCompressedMail&lt;/infoNode&gt;&#x0D;&#x0A;&lt;/historyRootNode&gt;&#x0D;&#x0A;&lt;/History&gt;" key="History"/>
+		<item value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#x0D;&#x0A;&lt;History&gt;&#x0D;&#x0A;&lt;historyRootNode&gt;&#x0D;&#x0A;&lt;infoNode&gt;=ZP_projekat/C:\/Users\/LENOVO\/Documents\/Faks\/8_semestar\/ZP\/Bouncy Castle jar\/bcmail-jdk15on-161.jar&amp;lt;org.bouncycastle.mail.smime.examples(CreateCompressedMail.class[CreateCompressedMail&lt;/infoNode&gt;&#x0D;&#x0A;&lt;infoNode&gt;=ZP_projekat/C:\/Users\/LENOVO\/Documents\/Faks\/8_semestar\/ZP\/Projekat 20182019.-20190526\/X509_2019.jar&amp;lt;code(X509.class[X509&lt;/infoNode&gt;&#x0D;&#x0A;&lt;/historyRootNode&gt;&#x0D;&#x0A;&lt;/History&gt;" key="History"/>
 		<section name="DialogBoundsSettings">
 			<item value="600" key="DIALOG_WIDTH"/>
 			<item value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>

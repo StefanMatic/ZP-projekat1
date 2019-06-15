@@ -2,24 +2,27 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="getAl" key="selection"/>
+		<item value="getCer" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
+			<item value="getCer"/>
+			<item value="PEMWriter"/>
+			<item value="SubjectKeyIdentifier"/>
+			<item value="SubjectKey"/>
+			<item value="exportCert"/>
+			<item value="loadKey"/>
+			<item value="signCSR"/>
+			<item value="PublicKeyAlgorithm"/>
+			<item value="setSubjectSignature"/>
+			<item value="setSubjectSi"/>
 			<item value="getAl"/>
 			<item value="saveKe"/>
 			<item value="load"/>
-			<item value="signCSR"/>
 			<item value="sign"/>
 			<item value="ECGenParameterSpec"/>
-			<item value="list"/>
-			<item value="certificateFactory"/>
-			<item value="publicKeyPara"/>
-			<item value="println"/>
-			<item value="loadLocal"/>
-			<item value="holder"/>
 		</list>
 		<list key="replacehistory">
 		</list>
@@ -28,7 +31,7 @@
 		<item value="385" key="DIALOG_WIDTH"/>
 		<item value="1|Segoe UI|9.0|0|WINDOWS|1|-18|0|0|0|400|0|0|0|1|0|0|0|0|Segoe UI" key="DIALOG_FONT_NAME"/>
 		<item value="523" key="DIALOG_HEIGHT"/>
-		<item value="983" key="DIALOG_X_ORIGIN"/>
-		<item value="178" key="DIALOG_Y_ORIGIN"/>
+		<item value="968" key="DIALOG_X_ORIGIN"/>
+		<item value="452" key="DIALOG_Y_ORIGIN"/>
 	</section>
 </section>
