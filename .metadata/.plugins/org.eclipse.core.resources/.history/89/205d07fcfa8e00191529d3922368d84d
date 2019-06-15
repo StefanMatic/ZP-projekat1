@@ -69,7 +69,6 @@ import org.bouncycastle.cms.CMSSignedData;
 import org.bouncycastle.cms.CMSSignedDataGenerator;
 import org.bouncycastle.cms.CMSTypedData;
 import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
-import org.bouncycastle.jcajce.provider.asymmetric.rsa.BCRSAPrivateCrtKey;
 import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMParser;
@@ -306,27 +305,18 @@ public class MyCode extends CodeV3 {
 			X509Certificate[] certificateChain = new X509Certificate[certificateHolders.size()];
 
 			// samo da znamo gde upisujemo sertifikat
-			int i = 0;
+            int i = 0;
 
-			// iteriramo kroz lanac i dohvatamo sve sertifikate u lancu
-			for (X509CertificateHolder holder : certificateHolders)
-				certificateChain[i++] = new JcaX509CertificateConverter().setProvider(new BouncyCastleProvider())
-						.getCertificate(holder);
-
-			X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg1);
+            // iteriramo kroz lanac i dohvatamo sve sertifikate u lancu
+            for (X509CertificateHolder holder : certificateHolders)
+                certificateChain[i++] = new JcaX509CertificateConverter().setProvider(new BouncyCastleProvider()).getCertificate(holder);
+		
+            X509Certificate cert = (X509Certificate) myKeyStore.getCertificate(arg1);
 			X509CertificateHolder certificateHolder = new JcaX509CertificateHolder(cert);
 			PrivateKey privateKey = (PrivateKey) myKeyStore.getKey(arg1, myKeyStore.getPassword().toCharArray());
-			PublicKey pu = cert.getPublicKey();
-
-			if (!certificateHolder.getSubject().equals(certificateHolder.getIssuer())) {
-				GuiV3.reportError("Sertfikat je vec potpisan");
-				return false;
-			}
-
-			myKeyStore.removeEntry(arg1);
+		
 			myKeyStore.setKeyEntry(arg1, privateKey, myKeyStore.getPassword().toCharArray(), certificateChain);
-
-			return true;
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -858,21 +848,29 @@ public class MyCode extends CodeV3 {
 			}
 			// ************************************************
 
-			ContentSigner signer = new JcaContentSignerBuilder(arg2).build(privateKey);
 			CMSSignedDataGenerator cmsSignedDataGenerator = new CMSSignedDataGenerator();
 
-			// Generating certificate
-			X509Certificate signedCertificate = new JcaX509CertificateConverter()
-					.getCertificate(generator.build(signer));
-
-
 			LinkedList<Certificate> newCertificates = new LinkedList<Certificate>();
-			newCertificates.add(signedCertificate);
-			for (Certificate certi : myCertificateChain) {
-				newCertificates.add(certi);
+			for (Certificate cert : myCertificateChain) {
+				newCertificates.add(cert);
 			}
 
 			Store certStore = new JcaCertStore(newCertificates);
+			ContentSigner signer = new JcaContentSignerBuilder(arg2).build(privateKey);
+
+			org.bouncycastle.asn1.x509.Certificate cert = null;
+			try {
+
+				// Generating certificate
+				X509CertificateHolder holder = generator.build(signer);
+
+				// Converting certificate from bouncy castle specification to java specification
+				cert = holder.toASN1Structure();
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				return false;
+			}
 
 			// Adding signer to cms generator.
 			cmsSignedDataGenerator.addSignerInfoGenerator(
@@ -884,8 +882,7 @@ public class MyCode extends CodeV3 {
 
 			// Adding signed certificate.
 			CMSSignedData signed = cmsSignedDataGenerator.generate(
-					new CMSProcessableByteArray(PKCSObjectIdentifiers.x509Certificate, signedCertificate.getEncoded()),
-					true);
+					new CMSProcessableByteArray(PKCSObjectIdentifiers.x509Certificate, cert.getEncoded()), true);
 
 			File f = new File(arg0);
 			if (f.exists()) {
@@ -916,9 +913,6 @@ public class MyCode extends CodeV3 {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (CMSException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (CertificateException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}

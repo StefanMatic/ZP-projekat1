@@ -858,7 +858,7 @@ public class MyCode extends CodeV3 {
 			}
 			// ************************************************
 
-			ContentSigner signer = new JcaContentSignerBuilder(arg2).build(privateKey);
+			ContentSigner signer = new JcaContentSignerBuilder(arg2).build((BCRSAPrivateCrtKey) privateKey);
 			CMSSignedDataGenerator cmsSignedDataGenerator = new CMSSignedDataGenerator();
 
 			// Generating certificate

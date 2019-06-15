@@ -159,16 +159,6 @@ public class MyKeyStorage {
 			e.printStackTrace();
 		}
 	}
-	
-	public void removeEntry(String arg0) {
-		try {
-			keyStorage.deleteEntry(arg0);
-			saveToFile();
-		} catch (KeyStoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
 
 	void resetKeyStore() {
 		try {
